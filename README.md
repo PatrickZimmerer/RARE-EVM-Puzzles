@@ -2,11 +2,11 @@
 
 - The real Readme will follow after my solutions
 
-Source: <https://github.com/fvictorio/evm-puzzles>
+## Original source: <https://github.com/fvictorio/evm-puzzles>
 
 The goal of those puzzles is to enter the right transaction (with the right data) to get the execution not reverted.
 
-## Puzzle 1
+### Puzzle 1
 
 ```assembly
 ############
@@ -31,7 +31,7 @@ The goal of those puzzles is to enter the right transaction (with the right data
 
 - So if we have a callvalue of `0x08` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the first puzzle
 
-## Puzzle 2
+### Puzzle 2
 
 ```assembly
 ############
@@ -60,7 +60,7 @@ The goal of those puzzles is to enter the right transaction (with the right data
 
 - So if we have a callvalue of `0x04` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the second puzzle
 
-## Puzzle 3
+### Puzzle 3
 
 ```assembly
 ############
@@ -83,7 +83,7 @@ The goal of those puzzles is to enter the right transaction (with the right data
 
 - So if we have a calldata of `0x01010101` or any arbitrary calldata with the length of 4 bytes the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the third puzzle
 
-## Puzzle 4
+### Puzzle 4
 
 ```assembly
 ############
@@ -123,7 +123,7 @@ example res => 10011001
 
 - So if we have a callvalue of `0x06` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the fourth puzzle
 
-## Puzzle 5
+### Puzzle 5
 
 ```assembly
 ############
@@ -165,7 +165,7 @@ example res => 10011001
 
 - So if we have a callvalue of `0x10` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the fifth puzzle
 
-## Puzzle 6
+### Puzzle 6
 
 ```assembly
 ############
@@ -205,7 +205,7 @@ example res => 10011001
 
 - So if we pass in a value of `0x000000000000000000000000000000000000000000000000000000000000000a` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the sixth puzzle
 
-## Puzzle 7
+### Puzzle 7
 
 ```assembly
 ############
@@ -296,7 +296,7 @@ EXTCODESIZE
 
 - So if we pass in a value of `0x60016000526001601ff3` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the seventh puzzle
 
-## Puzzle 8
+### Puzzle 8
 
 ```assembly
 ############
@@ -330,23 +330,9 @@ EXTCODESIZE
 
 - Identify the target => need to get to index 1c (28) where 'JUMPDEST' is located
 
-- First opcode is `PUSH1 00` which will push a 0 onto the stack
+#### From here on I will not list up all opcodes just new ones to explain them and increase my learning effect
 
-- Second opcode is `CALLDATALOAD` which will change the 32-byte value starting from the given offset of the calldata (in our case 0). All bytes after the end of the calldata are set to 0.
-
-- Quick example:
-
-=> First value on the stack = 0
-=> `CALLDATALOAD` with a calldata of `0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF` will result in
-=> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff on the stack
-
-=> First value on the stack = 31
-=> `CALLDATALOAD` with a calldata of `0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF` will result in
-=> ff00000000000000000000000000000000000000000000000000000000000000 on the stack since the 31 bytes of offset will result in only 1 byte being persisted
-
-- This leads us to passing in a 32 bytes value that results in 0a (10) since the offest is zero we don't really have to take that into consideration in our case
-
-- So if we pass in a value of `0x000000000000000000000000000000000000000000000000000000000000000a` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the eigth puzzle
+- So if we pass in a value of `placeholder` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the eigth puzzle
 
 ## EVM puzzles
 
