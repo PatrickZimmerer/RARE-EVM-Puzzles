@@ -364,7 +364,46 @@ contract AlwaysRevert {
 }
 ```
 
-- So if we pass in a value of `0x6080604052348015600f57600080fd5b5060918061001e6000396000f3fe60806040526004361060205760003560e01c8063e7b3e17b146025575b600080fd5b348015602f57600080fd5b5060366048565b005b6000811315604a575b600080fd5b9056fea2646970667358221220c7f95ef527de52b0e3e87d07366496cc44efb154eb1e266adfe98201e845a4a864736f6c63430008040033` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the eigth puzzle
+- So if we pass in a value of `0x6080604052348015600f57600080fd5b5060918061001e6000396000f3fe60806040526004361060205760003560e01c8063e7b3e17b146025575b600080fd5b348015602f57600080fd5b5060366048565b005b6000811315604a575b600080fd5b9056fea2646970667358221220c7f95ef527de52b0e3e87d07366496cc44efb154eb1e266adfe98201e845a4a864736f6c63430008040033` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the eighth puzzle
+
+### Puzzle 9
+
+```assembly
+############
+# Puzzle 9 #
+############
+
+00      36        CALLDATASIZE
+01      6003      PUSH1 03
+03      10        LT
+04      6009      PUSH1 09
+06      57        JUMPI
+07      FD        REVERT
+08      FD        REVERT
+09      5B        JUMPDEST
+0A      34        CALLVALUE
+0B      36        CALLDATASIZE
+0C      02        MUL
+0D      6008      PUSH1 08
+0F      14        EQ
+10      6014      PUSH1 14
+12      57        JUMPI
+13      FD        REVERT
+14      5B        JUMPDEST
+15      00        STOP
+```
+
+- Identify the target => need to get to index 14 (20) where 'JUMPDEST' is located
+
+- First 3 opcodes are getting the calldatasize in bytes then checking if the number 3 is `LT` the calldatasize
+
+- So to jump to the first `JUMPDEST` we just need to harvest a truthy value out of the `LT` check => min 4 bytes in calldata
+
+- Now we take the call value in wei and the calldatasize in bytes to the stack and multiply them and push X to the stack, after that we push the number 8 to the stack and check if 8 == x, when we pass this check the second `JUMPI` will bring us to our desired destination
+
+- now we need to calculate since calldata needs to be > 3 we cann either send an arbitrary 4 bytes calldata and 2 (wei) as the callvalue or we could send an arbitrary 8 byte calldata and 1 (wei)
+
+- So if we pass in a calldata of `0x01010101` and a value of `2` the second `JUMP` will land on the final `JUMPDEST` and we will sucesfully finish the eighth puzzle
 
 ## EVM puzzles
 
