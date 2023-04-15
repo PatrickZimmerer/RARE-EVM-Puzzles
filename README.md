@@ -393,7 +393,7 @@ contract AlwaysRevert {
 15      00        STOP
 ```
 
-- Identify the target => need to get to index 14 (20) where 'JUMPDEST' is located
+- Identify the targets => get to index 09 (9) first then we need to get to index 14 (20) where 'JUMPDEST' is located
 
 - First 3 opcodes are getting the calldatasize in bytes then checking if the number 3 is `LT` the calldatasize
 
@@ -404,6 +404,54 @@ contract AlwaysRevert {
 - now we need to calculate since calldata needs to be > 3 we cann either send an arbitrary 4 bytes calldata and 2 (wei) as the callvalue or we could send an arbitrary 8 byte calldata and 1 (wei)
 
 - So if we pass in a calldata of `0x01010101` and a value of `2` the second `JUMP` will land on the final `JUMPDEST` and we will sucesfully finish the eighth puzzle
+
+### Puzzle 10
+
+```assembly
+#############
+# Puzzle 10 #
+#############
+
+00      38          CODESIZE
+01      34          CALLVALUE
+02      90          SWAP1
+03      11          GT
+04      6008        PUSH1 08
+06      57          JUMPI
+07      FD          REVERT
+08      5B          JUMPDEST
+09      36          CALLDATASIZE
+0A      610003      PUSH2 0003
+0D      90          SWAP1
+0E      06          MOD
+0F      15          ISZERO
+10      34          CALLVALUE
+11      600A        PUSH1 0A
+13      01          ADD
+14      57          JUMPI
+15      FD          REVERT
+16      FD          REVERT
+17      FD          REVERT
+18      FD          REVERT
+19      5B          JUMPDEST
+1A      00          STOP
+```
+
+- Identify the targets => get to index 08 (8) first then we need to get to index 19 (25) where 'JUMPDEST' is located
+
+- First 3 opcodes are getting the codesize = 1b = 27 & the callvalue in wei swap those and then check if Codesize > Callvalue
+
+- So to jump to the first `JUMPDEST` we just need to harvest a truthy value out of the `GT` check => at max 26 wei that we should send
+
+- We take the calldatasize and push two bytes 0003 which = 3 on the stack swap those and now we can do Calldatasize % 3 the result will be on top of the stack now
+
+- Check if the result `ISZERO` and if it is a 1 will be on the stack else a 0 will be on the stack => !! we need calldata that is a multiple of 3 bytes long !!
+
+- The call value gets pushed onto the stack as well as 0a (10) we then add thos two which needs to result in 19 (25)
+
+- Now we need to calculate the callvalue needs to be 15 (wei) since 10 + 15 => 25
+
+- So if we pass in a calldata of `0x010101` and a value of `2` the second `JUMP` will land on the final `JUMPDEST` and we will sucesfully finish the eighth puzzle
 
 ## EVM puzzles
 
