@@ -332,7 +332,39 @@ EXTCODESIZE
 
 #### From here on I will not list up all opcodes just new ones to explain them and increase my learning effect
 
-- So if we pass in a value of `placeholder` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the eigth puzzle
+- Basically the same setup from index 00 to 0A (10) we created our contract and now have the address of that on the stack and the calldata copied to the 0th slot with 0 offset
+
+- Now we push 0 to the stack and duplicate that 4times so our stack is now form top to bottom => [0, 0, 0, 0, 0, addressOfContract] after `SWAP5` the address will be on top of the stack and the stack will look like this top to bottom [addressOfContract, 0, 0, 0, 0, 0] (address is now on top)
+
+- Next opcode is `GAS` which pushes the remaining gas to the stack
+
+- Next opcode is `CALL` that creates a new sub context and execute the code of the given account, then resumes the current one. Note that an account with no code will return success as true. It takes 7 arguments (exactly the amount of items on our stack) as following:
+
+1. gas: amount of gas to send to the sub context to execute. The gas that is not used by the sub context is returned to this one.
+2. address: the account which context to execute.
+3. value: value in wei to send to the account.
+4. argsOffset: byte offset in the memory in bytes, the calldata of the sub context.
+5. argsSize: byte size to copy (size of the calldata).
+6. retOffset: byte offset in the memory in bytes, where to store the return data of the sub context.
+7. retSize: byte size to copy (size of the return data).
+
+- `CALL` will push 0 if the sub context reverted, otherwise 1. So the call should be not sucessfull and revert to achieve a zero on the stack
+
+- now we push another 0 to the stack an check for equality which will then result with a 1 on the stack now the desired `JUMPDEST` 1b gets pushed to the stack and since we resulted with a truthy value in the `EQ` opcode the `JUMPI` will get us to the desired destination
+
+- So we just need to deploy a contract that reverts when we call it, so I made a simple smart contract in solidity and got the bytecode which will be used below
+
+```solidity
+contract AlwaysRevert {
+    fallback() external {
+        assembly {
+            revert(0, 0)
+        }
+    }
+}
+```
+
+- So if we pass in a value of `0x6080604052348015600f57600080fd5b5060918061001e6000396000f3fe60806040526004361060205760003560e01c8063e7b3e17b146025575b600080fd5b348015602f57600080fd5b5060366048565b005b6000811315604a575b600080fd5b9056fea2646970667358221220c7f95ef527de52b0e3e87d07366496cc44efb154eb1e266adfe98201e845a4a864736f6c63430008040033` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the eigth puzzle
 
 ## EVM puzzles
 
@@ -340,7 +372,7 @@ A collection of EVM puzzles. Each puzzle consists on sending a successful transa
 
 ## How to play
 
-Clone this repository and install its dependencies (`npm install` or `yarn`). Then run:
+Clone this repository and install its dependencies (`npm install` or `yarn`). Then run:a
 
 ```node
 npx hardhat play
