@@ -4,7 +4,7 @@
 
 ### Big thanks to the creators of the Repos which really helped me to understand how the EVM processes OPCODES and works in general
 
-#### Credits to:
+#### Credits to
 
 <https://github.com/fvictorio/evm-puzzles>
 
