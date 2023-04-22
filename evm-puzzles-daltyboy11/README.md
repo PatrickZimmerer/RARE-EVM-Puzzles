@@ -1,4 +1,4 @@
-# Original source: <https://github.com/fvictorio/evm-puzzles>
+# Original source: <https://github.com/daltyboy11/more-evm-puzzles>
 
 - The real Readme will follow after my solutions
 
@@ -88,13 +88,64 @@ The goal of those puzzles is to enter the right transaction (with the right data
 48      00      STOP
 ```
 
-- Identify the target => need to get to index 08 where 'JUMPDEST' is located
+- Identify the target => need to get to index 0x47 where 'JUMPDEST' is located
 
 - First challenge is to make the `EXP` of `CALLDATASIZE` & `CALLVALUE` to be 0x40 (64) which will get us to the first `JUMPDEST`
 
 - Second challenge is to make `ADD` of `PC` (which is 0x41) & `CALLDATASIZE` to be 0x47 (64) which will get us to the last `JUMPDEST`
 
 - So if we have a calldatasize of `0x010203040506` (6bytes) and a value of 2 the last `JUMP` will land on the last `JUMPDEST` and we will sucesfully finish the first puzzle
+
+### Puzzle 2
+
+```assembly
+############
+# Puzzle 2 #
+############
+
+00      36        CALLDATASIZE
+01      6000      PUSH1 00
+03      6000      PUSH1 00
+05      37        CALLDATACOPY
+06      36        CALLDATASIZE
+07      6000      PUSH1 00
+09      6000      PUSH1 00
+0B      F0        CREATE
+0C      6000      PUSH1 00
+0E      80        DUP1
+0F      80        DUP1
+10      80        DUP1
+11      80        DUP1
+12      94        SWAP5
+13      5A        GAS
+14      F1        CALL
+15      3D        RETURNDATASIZE
+16      600A      PUSH1 0A
+18      14        EQ
+19      601F      PUSH1 1F
+1B      57        JUMPI
+1C      FE        INVALID
+1D      FE        INVALID
+1E      FE        INVALID
+1F      5B        JUMPDEST
+20      00        STOP
+```
+
+- Identify the target => need to get to index 1F (31) where 'JUMPDEST' is located
+
+- `CALL` will call our created contract and `RETURNDATASIZE` will get us the length in bytes which were returned by the contract, so we need to deploy a contract that returns the value 10 when being called to pass the `PUSH1 0A` => `EQ` check afterwards and the `JUMPI` will bring us to the goal
+
+- So we just need to deploy a contract that returns 10 when we call it, so I made a simple smart contract in solidity and got the bytecode which will be used below
+
+```solidity
+contract AlwaysReturn10 {
+    fallback(bytes calldata) external returns(bytes memory) {
+        return bytes("123456789a");
+    }
+}
+```
+
+- So if we pass in a value of `0x6080604052348015600f57600080fd5b50608e80601d6000396000f3fe6080604052348015600f57600080fd5b5060003660606040518060400160405280600a81526020017f31323334353637383961000000000000000000000000000000000000000000008152509050915050805190602001f3fea26469706673582212204e6df7f3469a66e9621c705ae4aa31be1157097ccc49417bfd702a82a33a863a64736f6c63430008100033` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the eighth puzzle
 
 ## 10 more EVM puzzles
 
