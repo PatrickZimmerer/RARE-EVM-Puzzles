@@ -145,7 +145,63 @@ contract AlwaysReturn10 {
 }
 ```
 
-- So if we pass in a value of `0x6080604052348015600f57600080fd5b50608e80601d6000396000f3fe6080604052348015600f57600080fd5b5060003660606040518060400160405280600a81526020017f31323334353637383961000000000000000000000000000000000000000000008152509050915050805190602001f3fea26469706673582212204e6df7f3469a66e9621c705ae4aa31be1157097ccc49417bfd702a82a33a863a64736f6c63430008100033` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the eighth puzzle
+- So if we pass in a value of `0x6080604052348015600f57600080fd5b50608e80601d6000396000f3fe6080604052348015600f57600080fd5b5060003660606040518060400160405280600a81526020017f31323334353637383961000000000000000000000000000000000000000000008152509050915050805190602001f3fea26469706673582212204e6df7f3469a66e9621c705ae4aa31be1157097ccc49417bfd702a82a33a863a64736f6c63430008100033` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the second puzzle
+
+### Puzzle 3
+
+```assembly
+############
+# Puzzle 3 #
+############
+
+00      36        CALLDATASIZE
+01      6000      PUSH1 00
+03      6000      PUSH1 00
+05      37        CALLDATACOPY
+06      36        CALLDATASIZE
+07      6000      PUSH1 00
+09      6000      PUSH1 00
+0B      F0        CREATE
+0C      6000      PUSH1 00
+0E      80        DUP1
+0F      80        DUP1
+10      80        DUP1
+11      93        SWAP4
+12      5A        GAS
+13      F4        DELEGATECALL
+14      6005      PUSH1 05
+16      54        SLOAD
+17      60AA      PUSH1 AA
+19      14        EQ
+1A      601E      PUSH1 1E
+1C      57        JUMPI
+1D      FE        INVALID
+1E      5B        JUMPDEST
+1F      00        STOP
+```
+
+- Identify the target => need to get to index 1E (30) where 'JUMPDEST' is located
+
+- We just need our `SLOAD` to return `0xaa` when it is loading from the fifth sotrage slot so we can just initalize a contract with the value 0xaa at the fifth storage slot and pass in its bytecode
+
+```assembly
+// initialization code
+PUSH1 0x05 // length of runtimecode
+PUSH1 0x0C // location of runtime code
+PUSH1 0x00 // memory position
+CODECOPY   // copy bytecode
+PUSH1 0x05 // length of runtimecode
+PUSH1 0x00 // read from memory at 0
+RETURN
+// runtime code
+PUSH1 0xAA // desired value
+PUSH1 0x05 // storage slot
+SSTORE     // store command
+```
+
+This translates to `0x6005600C60003960056000F360AA600555`
+
+- So if we pass in a value of `0x6005600C60003960056000F360AA600555` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the third puzzle
 
 ## 10 more EVM puzzles
 
