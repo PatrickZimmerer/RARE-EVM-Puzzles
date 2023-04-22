@@ -8,4 +8,4 @@
 
 <https://github.com/fvictorio/evm-puzzles>
 
-<https://github.com/fvictorio>
+<https://github.com/daltyboy11/more-evm-puzzles>

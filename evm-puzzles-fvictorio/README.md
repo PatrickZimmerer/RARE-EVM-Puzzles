@@ -254,6 +254,7 @@ example res => 10011001
 - Next opcode is `EXTCODESIZE` which takes a 20-byte address of the contract to query as an argument and push the byte size of the contract to the stack.
 
 - Next opcode is `PUSH1 01` which will just push the number 1 to the stack.
+
 - Next opcode is `EQ` which will check for equality and push 0 or 1 (false or true) to the stack depending on the outcome.
 
 - Next opcode is `PUSH1 13` which will just push the number 13 to the stack.
@@ -285,6 +286,7 @@ EXTCODESIZE
 ```
 
 - This leads us to passing in any calldata that consists of an opcode that effectively returns 1 when being deployed e.g. 6001 (PUSH1 01)
+
 - Calldata that would return 1 when being deployed this will happen =>
 
 1. Push 1 with `PUSH1 01` 60 01
