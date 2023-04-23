@@ -314,14 +314,53 @@ CALL       // F1 => success bool is now on to of the stack
 2B      00                                                                      STOP
 ```
 
-// Max uint256 115792089237316195423570985008687907853269984665640564039457584007913129639935
-// 115792089237316195423570985008687907853269984665640564039457584007913129639920
-
 - Identify the target => need to get to index 19 (25) where 'JUMPDEST' is located
 
 - First the max uint256 - 15 (last hex is empty which equals 0 and F would be 15) now the callvalue gets pushed to the stack and `ADD` gets performed. Now we `PUSH1 01` and check if the values are equal and if so we can `JUMPI`
 
 - So we just need to send a callvalue of 17 to cause an overflow and start over at 1 and the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the sixth puzzle
+
+### Puzzle 7
+
+```assembly
+############
+# Puzzle 7 #
+############
+
+00      5A        GAS
+01      34        CALLVALUE
+02      5B        JUMPDEST
+03      6001      PUSH1 01
+05      90        SWAP1
+06      03        SUB
+07      80        DUP1
+08      6000      PUSH1 00
+0A      14        EQ
+0B      6011      PUSH1 11
+0D      57        JUMPI
+0E      6002      PUSH1 02
+10      56        JUMP
+11      5B        JUMPDEST
+12      5A        GAS
+13      90        SWAP1
+14      91        SWAP2
+15      03        SUB
+16      60A6      PUSH1 A6
+18      14        EQ
+19      601D      PUSH1 1D
+1B      57        JUMPI
+1C      FD        REVERT
+1D      5B        JUMPDEST
+1E      00        STOP
+```
+
+- Identify the target => need to get to index 19 (25) where 'JUMPDEST' is located
+
+- First we need to make sure our `CALLVALUE` will result in zero when getting subtracted by 1 to get the `JUMPI` to get us out of that loop at indexes `0E PUSH1 02 + JUMP` which will cause us to start over again, but first we need to spend some more gas
+
+- So the second challenge takes our initial `GAS` which is stored until we reach index 14 `SWAP2 => SUB` which will subtract our current `GAS` from our initial `GAS` and check if the result is equal to `A6 (166)` so we need to go through the loop mentioned above a certain amount of times to reduce our remaining gas. The first iteration will end up costing us 47 gas each other iteration will cost 43 gas, so if we go through the loop 3 times will cost 133 gas, now we want to break out of that loop and reach our check mentioned above to complete the challenge
+
+- So we just need to send a callvalue of 4 to loop 3 times and break out of the loop after that `JUMP` will land on `JUMPDEST` and we will sucesfully finish the seventh puzzle
 
 ## 10 more EVM puzzles
 
