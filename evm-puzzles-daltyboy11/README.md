@@ -452,6 +452,72 @@ RETURN
 
 - So we just need to send a calldata of `68600080808047335AF160005360096017F3600080808047335AF1` and `JUMP` will land on `JUMPDEST` and we will sucesfully finish the eigth puzzle
 
+### Puzzle 9
+
+```assembly
+############
+# Puzzle 9 #
+############
+
+00      34        CALLVALUE
+01      6000      PUSH1 00
+03      52        MSTORE
+04      6020      PUSH1 20
+06      6000      PUSH1 00
+08      20        SHA3
+09      60F8      PUSH1 F8
+0B      1C        SHR
+0C      60A8      PUSH1 A8
+0E      14        EQ
+0F      6016      PUSH1 16
+11      57        JUMPI
+12      FD        REVERT
+13      FD        REVERT
+14      FD        REVERT
+15      FD        REVERT
+16      5B        JUMPDEST
+17      00        STOP
+```
+
+- Identify the target => need to get to index 16 (22) where 'JUMPDEST' is located
+
+- First the `CALLVALUE` gets stored with an offset of 0
+
+- Now the `SHA3` will create a keccak256 hash of the value stored at offset 0, with the size of 0x20 (32 bytes)
+
+- 0xF8 gets pushed to the stack, now we will `SHR` which shifts for 0xF8 (248) bits to the right, now if we manage to get a value of 0xA8 after that we would pass the `EQ` check and `JUMPI` to the desired location
+
+- So we only need to pass in a value which will result in a keccask256 hash that starts with 0xA8 to pass since the `SHR` will remove the other bits anyways 256 - 248 = 8 => 1 byte
+
+- I spun up a quick hardhat test which bruteforces me the hashes which would result in us solving the challenge
+
+Contract:
+
+```solidity
+contract FindHash {
+    function find(uint256 i) external pure returns (bytes32) {
+        return keccak256(abi.encode(i));
+    }
+}
+```
+
+Test:
+
+```javascript
+describe('find', () => {
+	it('should find the correct hash', async () => {
+		for (let i = 0; i < 1000; i++) {
+			let hash = await findHash.find(i);
+			if (hash.startsWith('0xa8')) {
+				console.log(i);
+			}
+		}
+	});
+});
+```
+
+- So we just need to send a callvalue of `47` or `69` and we will sucesfully finish the nineth puzzle
+
 ## 10 more EVM puzzles
 
 Here are 10 more puzzles, inspired by the 10 EVM puzzles created by [@fvictorio](https://github.com/fvictorio/evm-puzzles). These ones are harder and more focused on the CREATE and CALL opcodes. Have fun!
