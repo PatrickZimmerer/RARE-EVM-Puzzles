@@ -94,7 +94,7 @@ The goal of those puzzles is to enter the right transaction (with the right data
 
 - Second challenge is to make `ADD` of `PC` (which is 0x41) & `CALLDATASIZE` to be 0x47 (64) which will get us to the last `JUMPDEST`
 
-- So if we have a calldatasize of `0x010203040506` (6bytes) and a value of 2 the last `JUMP` will land on the last `JUMPDEST` and we will sucesfully finish the first puzzle
+- So if we have a calldata of `0x010203040506` (6bytes) and a value of 2 the last `JUMP` will land on the last `JUMPDEST` and we will sucesfully finish the first puzzle
 
 ### Puzzle 2
 
@@ -145,7 +145,7 @@ contract AlwaysReturn10 {
 }
 ```
 
-- So if we pass in a value of `0x6080604052348015600f57600080fd5b50608e80601d6000396000f3fe6080604052348015600f57600080fd5b5060003660606040518060400160405280600a81526020017f31323334353637383961000000000000000000000000000000000000000000008152509050915050805190602001f3fea26469706673582212204e6df7f3469a66e9621c705ae4aa31be1157097ccc49417bfd702a82a33a863a64736f6c63430008100033` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the second puzzle
+- So if we pass in a calldata of `0x6080604052348015600f57600080fd5b50608e80601d6000396000f3fe6080604052348015600f57600080fd5b5060003660606040518060400160405280600a81526020017f31323334353637383961000000000000000000000000000000000000000000008152509050915050805190602001f3fea26469706673582212204e6df7f3469a66e9621c705ae4aa31be1157097ccc49417bfd702a82a33a863a64736f6c63430008100033` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the second puzzle
 
 ### Puzzle 3
 
@@ -201,7 +201,60 @@ SSTORE     // store command
 
 This translates to `0x6005600C60003960056000F360AA600555`
 
-- So if we pass in a value of `0x6005600C60003960056000F360AA600555` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the third puzzle
+- So if we pass in a calldata of `0x6005600C60003960056000F360AA600555` the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the third puzzle
+
+### Puzzle 4
+
+```assembly
+############
+# Puzzle 4 #
+############
+
+00      30        ADDRESS
+01      31        BALANCE
+02      36        CALLDATASIZE
+03      6000      PUSH1 00
+05      6000      PUSH1 00
+07      37        CALLDATACOPY
+08      36        CALLDATASIZE
+09      6000      PUSH1 00
+0B      30        ADDRESS
+0C      31        BALANCE
+0D      F0        CREATE
+0E      31        BALANCE
+0F      90        SWAP1
+10      04        DIV
+11      6002      PUSH1 02
+13      14        EQ
+14      6018      PUSH1 18
+16      57        JUMPI
+17      FD        REVERT
+18      5B        JUMPDEST
+19      00        STOP
+```
+
+- Identify the target => need to get to index 19 (25) where 'JUMPDEST' is located
+
+- We need our `BALANCE` after `CREATE` to return half the amount we sent as a call value, so we need to get rid of 50% of our sent wei so the following `DIV` opcode will result in 2, since after that `PUSH1 0x02` and `EQ` will check if our result equals 2
+
+```assembly
+PUSH1 0x00 // needed param for call
+DUP1       // needed param for call
+DUP1       // needed param for call
+DUP1       // needed param for call
+// now calculate the value by getting the balance divided by 2 and send to arbitrary address
+PUSH1 0x02 // Push 2
+CALLVALUE  // Pushes the sent amount in wei to the stack
+DIV        // Divide by 2 => Result is now on top of the stack
+DUP2       // zero address to burn half our wei
+GAS        // 5A needed param for CALL
+CALL       // F1 => success bool is now on to of the stack
+```
+
+// The initialization code will end at F3 below.
+This translates to a bytecode of `600080808060023404815af1600080f3`
+
+- So if we pass in a calldata of `600080808060023404815af1600080f3` and an arbitrary number that is dividable by 2 the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the fourth puzzle
 
 ## 10 more EVM puzzles
 
