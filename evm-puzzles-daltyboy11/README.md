@@ -237,7 +237,7 @@ This translates to `0x6005600C60003960056000F360AA600555`
 
 - We need our `BALANCE` after `CREATE` to return half the amount we sent as a call value, so we need to get rid of 50% of our sent wei so the following `DIV` opcode will result in 2, since after that `PUSH1 0x02` and `EQ` will check if our result equals 2
 
-````assembly
+```assembly
 PUSH1 0x00 // needed param for call
 DUP1       // needed param for call
 DUP1       // needed param for call
@@ -249,6 +249,7 @@ DIV        // Divide by 2 => Result is now on top of the stack
 DUP2       // zero address to burn half our wei
 GAS        // 5A needed param for CALL
 CALL       // F1 => success bool is now on to of the stack
+```
 
 - So if we pass in a calldata of `600080808060023404815af1600080f3` and an arbitrary number that is dividable by 2 the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the fourth puzzle
 
@@ -280,7 +281,7 @@ CALL       // F1 => success bool is now on to of the stack
 18      FD        REVERT
 19      5B        JUMPDEST
 1A      00        STOP
-````
+```
 
 - Identify the target => need to get to index 19 (25) where 'JUMPDEST' is located
 
@@ -293,6 +294,34 @@ CALL       // F1 => success bool is now on to of the stack
 - We could also send an arbitrary length of Calldata as long it's 3 bytes lower than the memory it will take up e.g. 93 bytes => 96 bytes - 93 bytes, 125 bytes => 128bytes - 125 bytes
 
 - So if we pass in a calldata of `11223344556677889910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061` or an arbitrary 61 bytes calldata the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the fifth puzzle
+
+### Puzzle 6
+
+```assembly
+############
+# Puzzle 6 #
+############
+
+00      7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0      PUSH32 FF...F0
+21      34                                                                      CALLVALUE
+22      01                                                                      ADD
+23      6001                                                                    PUSH1 01
+25      14                                                                      EQ
+26      602A                                                                    PUSH1 2A
+28      57                                                                      JUMPI
+29      FD                                                                      REVERT
+2A      5B                                                                      JUMPDEST
+2B      00                                                                      STOP
+```
+
+// Max uint256 115792089237316195423570985008687907853269984665640564039457584007913129639935
+// 115792089237316195423570985008687907853269984665640564039457584007913129639920
+
+- Identify the target => need to get to index 19 (25) where 'JUMPDEST' is located
+
+- First the max uint256 - 15 (last hex is empty which equals 0 and F would be 15) now the callvalue gets pushed to the stack and `ADD` gets performed. Now we `PUSH1 01` and check if the values are equal and if so we can `JUMPI`
+
+- So we just need to send a callvalue of 17 to cause an overflow and start over at 1 and the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the sixth puzzle
 
 ## 10 more EVM puzzles
 
