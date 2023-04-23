@@ -237,7 +237,7 @@ This translates to `0x6005600C60003960056000F360AA600555`
 
 - We need our `BALANCE` after `CREATE` to return half the amount we sent as a call value, so we need to get rid of 50% of our sent wei so the following `DIV` opcode will result in 2, since after that `PUSH1 0x02` and `EQ` will check if our result equals 2
 
-```assembly
+````assembly
 PUSH1 0x00 // needed param for call
 DUP1       // needed param for call
 DUP1       // needed param for call
@@ -249,12 +249,50 @@ DIV        // Divide by 2 => Result is now on top of the stack
 DUP2       // zero address to burn half our wei
 GAS        // 5A needed param for CALL
 CALL       // F1 => success bool is now on to of the stack
-```
-
-// The initialization code will end at F3 below.
-This translates to a bytecode of `600080808060023404815af1600080f3`
 
 - So if we pass in a calldata of `600080808060023404815af1600080f3` and an arbitrary number that is dividable by 2 the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the fourth puzzle
+
+### Puzzle 5
+
+```assembly
+############
+# Puzzle 5 #
+############
+
+00      6020      PUSH1 20
+02      36        CALLDATASIZE
+03      11        GT
+04      6008      PUSH1 08
+06      57        JUMPI
+07      FD        REVERT
+08      5B        JUMPDEST
+09      36        CALLDATASIZE
+0A      6000      PUSH1 00
+0C      6000      PUSH1 00
+0E      37        CALLDATACOPY
+0F      36        CALLDATASIZE
+10      59        MSIZE
+11      03        SUB
+12      6003      PUSH1 03
+14      14        EQ
+15      6019      PUSH1 19
+17      57        JUMPI
+18      FD        REVERT
+19      5B        JUMPDEST
+1A      00        STOP
+````
+
+- Identify the target => need to get to index 19 (25) where 'JUMPDEST' is located
+
+- First challenge is to make the `CALLDATASIZE` be `GT` than `0x20` (32) which will get us to the first `JUMPDEST` at `08`
+
+- Now the `CALLDATA` gets copied to the memory then the `CALLDATASIZE` gets pushed and then the `MSIZE` which gets the size of active memory in bytes, now we `SUB` which will result in `MSIZE - CALLDATASIZE` on the stack now the ruslt of that needs to `EQ` the value 3 wo allow our `JUMPI` to jump to the next `JUMPDEST`
+
+- Second challenge is to make `MSIZE` - `CALLDATASIZE` == `3` to calculate the `MSIZE` we just need to know our data must be `GT 0x20` which means we will need at minimum 2 memory slots since one only can fit 32 bytes, so it will start at 0x40 (64 bytes) as long as our `CALLDATA` is not greater than 64 bytes obivously
+
+- We could also send an arbitrary length of Calldata as long it's 3 bytes lower than the memory it will take up e.g. 93 bytes => 96 bytes - 93 bytes, 125 bytes => 128bytes - 125 bytes
+
+- So if we pass in a calldata of `11223344556677889910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061` or an arbitrary 61 bytes calldata the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the fifth puzzle
 
 ## 10 more EVM puzzles
 
