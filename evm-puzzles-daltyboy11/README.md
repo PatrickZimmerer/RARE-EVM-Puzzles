@@ -249,6 +249,9 @@ DIV        // Divide by 2 => Result is now on top of the stack
 DUP2       // zero address to burn half our wei
 GAS        // 5A needed param for CALL
 CALL       // F1 => success bool is now on to of the stack
+PUSH1 0x00 // 0 to the stack
+DUP1       // Duplicate
+RETURN     // Return
 ```
 
 - So if we pass in a calldata of `600080808060023404815af1600080f3` and an arbitrary number that is dividable by 2 the `JUMP` will land on `JUMPDEST` and we will sucesfully finish the fourth puzzle
@@ -361,6 +364,93 @@ CALL       // F1 => success bool is now on to of the stack
 - So the second challenge takes our initial `GAS` which is stored until we reach index 14 `SWAP2 => SUB` which will subtract our current `GAS` from our initial `GAS` and check if the result is equal to `A6 (166)` so we need to go through the loop mentioned above a certain amount of times to reduce our remaining gas. The first iteration will end up costing us 47 gas each other iteration will cost 43 gas, so if we go through the loop 3 times will cost 133 gas, now we want to break out of that loop and reach our check mentioned above to complete the challenge
 
 - So we just need to send a callvalue of 4 to loop 3 times and break out of the loop after that `JUMP` will land on `JUMPDEST` and we will sucesfully finish the seventh puzzle
+
+### Puzzle 8
+
+```assembly
+############
+# Puzzle 8 #
+############
+
+00      34        CALLVALUE
+01      15        ISZERO
+02      19        NOT
+03      6007      PUSH1 07
+05      57        JUMPI
+06      FD        REVERT
+07      5B        JUMPDEST
+08      36        CALLDATASIZE
+09      6000      PUSH1 00
+0B      6000      PUSH1 00
+0D      37        CALLDATACOPY
+0E      36        CALLDATASIZE
+0F      6000      PUSH1 00
+11      6000      PUSH1 00
+13      F0        CREATE
+14      47        SELFBALANCE
+15      6000      PUSH1 00
+17      6000      PUSH1 00
+19      6000      PUSH1 00
+1B      6000      PUSH1 00
+1D      47        SELFBALANCE
+1E      86        DUP7
+1F      5A        GAS
+20      F1        CALL
+21      6001      PUSH1 01
+23      14        EQ
+24      6028      PUSH1 28
+26      57        JUMPI
+27      FD        REVERT
+28      5B        JUMPDEST
+29      47        SELFBALANCE
+2A      14        EQ
+2B      602F      PUSH1 2F
+2D      57        JUMPI
+2E      FD        REVERT
+2F      5B        JUMPDEST
+30      00        STOP
+```
+
+- Identify the target => need to get to index 2F (47) where 'JUMPDEST' is located
+
+- First we need to understand the first lines where it doesn't matter which callvalue we send it checks if it `ISZERO` and then the `NOT` operator flipps all bits from 0 => 1 and 1 => 0 se we will always end up with a value of type(uint256).max or type(uint256).max - 1 after the `NOT` operator the value doesn't get stored so itÄ's not important, the callvalue will come into play later because of `SELFBALANCE`
+
+- Now the `CALLDATA` gets copied to memory and it gets `CREATE`ed and the `SELFABALANCE` gets pushed to the stack after that 4 zeros get pushed and the `SELFBALANCE` gets pushed again, now `DUP7` will duplicate the address of the created contract and we add `GAS` + `CALL` the contract, if that CALL is successfull we will pass the following `EQ` and `JUMPI` to index 28
+
+- We are now left with the initially passed in `CALLVALUE` (in form of SELFBALANCE) on top of the stack and the address of the contract below that now `SELFBALANCE` gets pushed ontop of the stack and gets checked for the old equality
+
+- This leads us to deploying a contract that should return us the sent value when being called function should look like this
+
+Runtime code
+
+```assembly
+PUSH1 00    // 6000
+DUP1        // 80
+DUP1        // 80
+DUP1        // 80
+SELFBALANCE // 47
+CALLER      // 33
+GAS         // 5A
+CALL        // F1
+```
+
+=> `600080808047335AF1`
+
+Creation code
+
+```assembly
+PUSH9 0x600080808047335AF1 // runtime code
+PUSH1 0x00
+MSTORE
+
+PUSH1 0x09
+PUSH1 0x17
+RETURN
+```
+
+=> `68600080808047335AF160005360096017F3600080808047335AF1`
+
+- So we just need to send a calldata of `68600080808047335AF160005360096017F3600080808047335AF1` and `JUMP` will land on `JUMPDEST` and we will sucesfully finish the eigth puzzle
 
 ## 10 more EVM puzzles
 
