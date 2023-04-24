@@ -516,7 +516,50 @@ describe('find', () => {
 });
 ```
 
-- So we just need to send a callvalue of `47` or `69` and we will sucesfully finish the nineth puzzle
+- So we just need to send a callvalue of `47` or `69` and we will sucesfully finish the 9th puzzle
+
+### Puzzle 10
+
+```assembly
+#############
+# Puzzle 10 #
+#############
+
+00      6020                                                                    PUSH1 20
+02      6000                                                                    PUSH1 00
+04      6000                                                                    PUSH1 00
+06      37                                                                      CALLDATACOPY
+07      6000                                                                    PUSH1 00
+09      51                                                                      MLOAD
+0A      7FF0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0      PUSH32 F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0
+2B      16                                                                      AND
+2C      6020                                                                    PUSH1 20
+2E      6020                                                                    PUSH1 20
+30      6000                                                                    PUSH1 00
+32      37                                                                      CALLDATACOPY
+33      6000                                                                    PUSH1 00
+35      51                                                                      MLOAD
+36      17                                                                      OR
+37      7FABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABAB      PUSH32 ABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABAB
+58      14                                                                      EQ
+59      605D                                                                    PUSH1 5D
+5B      57                                                                      JUMPI
+5C      FD                                                                      REVERT
+5D      5B                                                                      JUMPDEST
+5E      00                                                                      STOP
+```
+
+- Identify the target => need to get to index 5D (93) where 'JUMPDEST' is located
+
+- First the first 32 bytes of our `CALLDATA` get stored to memory with an offset && destoffset of 0
+
+- Now we `MLOAD` the first 32 bytes of our calldata, and psuh 32 bytes of `F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0` a single set of `f0` will look like this in binary `11110000` to the stack, then we perform an `AND` bit operation which will flip all bits to a 0 if not both bits are set so => `111000111 AND 11001110` will result in `11000110` for example
+
+- In the next steps we will do the same as in the first step but just with our second 32 bytes of calldata => store them => load them and then perform an `OR` operation on our existing value after the `AND` operation and the second 32 bytes of our calldata
+
+- We push 32 bytes `ABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABAB` to the stack and check for equality to our value after the `OR` operation, so if you understand the `AND & OR` operations you know that you have to pass in a calldata where the first 32 bytes need to be in this pattern AXAXAXAXAX where the value of X doesn't matter since its an AND operation, and the second 32 bytes need to have this pattern ABABAB for 32 bytes consecutive
+
+- So we need to send a calldata of `abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab` (64 bytes worth of ab's) and we will sucesfully finish the last puzzle
 
 ## 10 more EVM puzzles
 
