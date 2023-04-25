@@ -9,3 +9,5 @@
 <https://github.com/fvictorio/evm-puzzles>
 
 <https://github.com/daltyboy11/more-evm-puzzles>
+
+<https://github.com/zaryab2000/decipher_EVM_Puzzles>
